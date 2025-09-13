@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppService } from './app.service';
 import { CategoriesModule } from './categories/categories.module';
 import { ProductsModule } from './products/products.module';
 import { OrdersModule } from './orders/orders.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -12,6 +15,12 @@ import { OrdersModule } from './orders/orders.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+
+    // Configuración para servir archivos estáticos
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
     }),
 
     // Configuración de TypeORM
@@ -32,6 +41,7 @@ import { OrdersModule } from './orders/orders.module';
     }),
 
     // Módulos de la aplicación
+    CommonModule,
     CategoriesModule,
     ProductsModule,
     OrdersModule,
