@@ -5,7 +5,8 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { FileUploadService } from './file-upload.service';
 
 @Injectable()
@@ -18,7 +19,14 @@ export class ProductImageInterceptor implements NestInterceptor {
       5,
       this.fileUploadService.getMulterOptions(),
     ))();
-    return filesInterceptor.intercept(context, next);
+
+    const result = filesInterceptor.intercept(context, next);
+
+    if (result instanceof Observable) {
+      return result;
+    }
+
+    return from(result).pipe(switchMap((obs: Observable<any>) => obs));
   }
 }
 
@@ -31,6 +39,13 @@ export class SingleProductImageInterceptor implements NestInterceptor {
       'image',
       this.fileUploadService.getMulterOptions(),
     ))();
-    return fileInterceptor.intercept(context, next);
+
+    const result = fileInterceptor.intercept(context, next);
+
+    if (result instanceof Observable) {
+      return result;
+    }
+
+    return from(result).pipe(switchMap((obs: Observable<any>) => obs));
   }
 }
