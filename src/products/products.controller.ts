@@ -271,4 +271,34 @@ export class ProductsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.remove(id);
   }
+
+  @Get('image/:filename/base64')
+  @ApiOperation({ summary: 'Obtener una imagen en formato base64' })
+  @ApiParam({
+    name: 'filename',
+    description: 'Nombre del archivo de imagen',
+    example: '251707f5-c82e-4420-aa8f-7fd12b98fa19.png',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Imagen en formato base64',
+    schema: {
+      type: 'object',
+      properties: {
+        base64: { type: 'string', description: 'Imagen codificada en base64' },
+        filename: { type: 'string', description: 'Nombre del archivo' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Imagen no encontrada' })
+  getImageBase64(@Param('filename') filename: string) {
+    const base64 = this.fileUploadService.getImageAsBase64(filename);
+    if (!base64) {
+      throw new BadRequestException('Imagen no encontrada');
+    }
+    return {
+      base64,
+      filename,
+    };
+  }
 }

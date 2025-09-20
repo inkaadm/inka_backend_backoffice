@@ -94,4 +94,51 @@ export class FileUploadService {
   getImageUrls(filenames: string[]): string[] {
     return filenames.map((filename) => this.getFileUrl(filename));
   }
+
+  /**
+   * Convertir imagen a base64
+   */
+  getImageAsBase64(filename: string): string | null {
+    try {
+      const filePath = join(process.cwd(), this.uploadPath, filename);
+      if (fs.existsSync(filePath)) {
+        const imageBuffer = fs.readFileSync(filePath);
+        const base64 = imageBuffer.toString('base64');
+        const extension = extname(filename).toLowerCase();
+
+        // Determinar el MIME type basado en la extensión
+        let mimeType = 'image/jpeg'; // default
+        switch (extension) {
+          case '.png':
+            mimeType = 'image/png';
+            break;
+          case '.gif':
+            mimeType = 'image/gif';
+            break;
+          case '.webp':
+            mimeType = 'image/webp';
+            break;
+          case '.jpg':
+          case '.jpeg':
+            mimeType = 'image/jpeg';
+            break;
+        }
+
+        return `data:${mimeType};base64,${base64}`;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Error convirtiendo imagen ${filename} a base64:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Convertir múltiples imágenes a base64
+   */
+  getImagesAsBase64(filenames: string[]): string[] {
+    return filenames
+      .map((filename) => this.getImageAsBase64(filename))
+      .filter((base64) => base64 !== null);
+  }
 }

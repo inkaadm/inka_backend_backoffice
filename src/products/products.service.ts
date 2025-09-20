@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 import { FileUploadService } from '../common/file-upload.service';
+import { ProductWithBase64 } from './interfaces/product-with-base64.interface';
 
 @Injectable()
 export class ProductsService {
@@ -29,9 +30,17 @@ export class ProductsService {
   }
 
   async findAll(): Promise<Product[]> {
-    return await this.productsRepository.find({
+    const products = await this.productsRepository.find({
       relations: ['category', 'orders'],
     });
+
+    // Convertir imágenes a base64
+    return products.map((product) => ({
+      ...product,
+      imagesBase64: product.images
+        ? this.fileUploadService.getImagesAsBase64(product.images)
+        : [],
+    }));
   }
 
   async findOne(id: number): Promise<Product> {
@@ -44,14 +53,28 @@ export class ProductsService {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    return product;
+    // Convertir imágenes a base64
+    return {
+      ...product,
+      imagesBase64: product.images
+        ? this.fileUploadService.getImagesAsBase64(product.images)
+        : [],
+    } as Product;
   }
 
   async findByCategory(categoryId: number): Promise<Product[]> {
-    return await this.productsRepository.find({
+    const products = await this.productsRepository.find({
       where: { categoryId },
       relations: ['category', 'orders'],
     });
+
+    // Convertir imágenes a base64
+    return products.map((product) => ({
+      ...product,
+      imagesBase64: product.images
+        ? this.fileUploadService.getImagesAsBase64(product.images)
+        : [],
+    }));
   }
 
   async update(
